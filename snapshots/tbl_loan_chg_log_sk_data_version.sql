@@ -1,4 +1,4 @@
-{% snapshot tbl_loan_chg_log %}
+{% snapshot tbl_loan_chg_log_sk_data_version %}
 
 {{ config(
     unique_key   = ['loan_key','rec_type','chg_sq','sor_cd'],
@@ -14,11 +14,13 @@
         'chg_amt_1','chg_amt_2','chg_amt_3','chg_amt_4','chg_amt_5',
         'chg_amt_6','chg_amt_7','chg_amt_8','chg_amt_9','chg_amt_10','chg_amt_11'
     ],
-        post_hook = [
-        "update {{this}} set active_flag = 'N'
-         where audit_updated_datetime::date = current_date()
-         and effective_end_date::date != '9999-12-31'"
+    post_hook = [
+    "update {{this}} 
+     set active_flag = 'N'
+     where dbt_valid_to::date != '9999-12-31'
+     and active_flag = 'Y'"
     ],
+
     dbt_valid_to_current       = "to_timestamp('9999-12-31 23:59:59.9999999')",
     snapshot_meta_column_names = {
         "dbt_valid_from" : "effective_start_date",
@@ -67,14 +69,14 @@ with CTE_SRC_SS_SRVCHG as (
         cast(s.change_amt9        as numeric(9,2)) as chg_amt_9,
         cast(s.change_amt10       as numeric(9,2)) as chg_amt_10,
         cast(s.change_amt11       as numeric(9,2)) as chg_amt_11
-    from sk.SRVCHG   s  
-    join sk.LSLOAN0O l   
+    from {{source('SNOWFLAKE_LEARNING_DB_sk','SRVCHG')}}   s  
+    join {{source('SNOWFLAKE_LEARNING_DB_sk','LSLOAN0O')}} l   
         on s.loan_nbr_num = l.lsln_n        
 ),
 
 CTE_SS_SRC_LOAN_NO_CROSS_REF as (
     select loan_key, loan_nbr, brnd_nm
-    from SK.TBL_LOAN_MASTER
+    from {{source('SNOWFLAKE_LEARNING_DB_sk','TBL_LOAN_MASTER')}}
 ),
 
 CTE_XFM_SRC as (
