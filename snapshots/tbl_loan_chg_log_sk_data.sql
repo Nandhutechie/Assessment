@@ -15,7 +15,6 @@
         'chg_amt_6','chg_amt_7','chg_amt_8','chg_amt_9','chg_amt_10','chg_amt_11'
     ],
         post_hook = [
-        "{{ update_ctrl('SNOWFLAKE_LEARNING_DB_SK', 'SRVCHG', 'LOAD_DTTM') }}",
         "update {{this}} set active_flag = 'N'
          where audit_updated_datetime::date = current_date()
          and effective_end_date::date != '9999-12-31'"
