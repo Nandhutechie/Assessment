@@ -1,0 +1,15 @@
+version: 2
+
+sources:
+  - name: SNOWFLAKE_LEARNING_DB_sk
+    database: SNOWFLAKE_LEARNING_DB
+    schema: SK
+    tables:
+      - name: SRVCHG
+        description: "Service charge source table"
+
+      - name: LSLOAN0O
+        description: "Loan master source table"
+
+      - name: TBL_LOAN_MASTER
+        description: "Loan key cross reference table"

@@ -1,0 +1,16 @@
+version: 2
+
+snapshots:
+  - name: tbl_loan_chg_log_sk_data_version
+    columns:
+      - name: loan_key
+        tests:
+          - not_null
+      - name: active_flag
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Y', 'N']
+      - name: DBT_VALID_FROM
+        tests:
+          - not_null
