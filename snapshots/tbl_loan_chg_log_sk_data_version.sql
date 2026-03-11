@@ -17,7 +17,7 @@
     post_hook = [
     "update {{this}} 
      set active_flag = 'N'
-     where dbt_valid_to::date != '9999-12-31'
+     where effective_end_date::date != '9999-12-31'
      and active_flag = 'Y'"
     ],
 
