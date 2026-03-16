@@ -15,10 +15,7 @@
         'chg_amt_6','chg_amt_7','chg_amt_8','chg_amt_9','chg_amt_10','chg_amt_11'
     ],
     post_hook = [
-    "update {{this}} 
-     set active_flag = 'N'
-     where dbt_valid_to::date != '9999-12-31'
-     and active_flag = 'Y'"
+    "{{ mark_inactive_record(var('trunc_flag', 'N')) }}"
     ],
 
     dbt_valid_to_current       = "to_timestamp('9999-12-31 23:59:59.9999999')",
@@ -29,6 +26,7 @@
         "dbt_updated_at" : "audit_updated_datetime"
     }
 ) }}
+
 
 with CTE_SRC_SS_SRVCHG as (
     select distinct
@@ -140,24 +138,53 @@ CTE_UPSERT as (
         1                                               as etl_batch_id,
         'Y'                                             as active_flag
     from CTE_LKP_LOAN_KEY
-)
+),
+final as 
+(      
+		{% if var('trunc_flag', 'N') == 'Y' %}
+				select
+				unq_key_txt, brnd_nm, rec_type, loan_nbr, chg_sq,
+				chg_type_flg_1,  chg_type_flg_2,  chg_type_flg_3,
+				chg_type_flg_4,  chg_type_flg_5,  chg_type_flg_6,
+				chg_type_flg_7,  chg_type_flg_8,  chg_type_flg_9,
+				chg_type_flg_10, chg_type_flg_11,
+				chg_dt_1,  chg_dt_2,  chg_dt_3,  chg_dt_4,  chg_dt_5,
+				chg_dt_6,  chg_dt_7,  chg_dt_8,  chg_dt_9,  chg_dt_10, chg_dt_11,
+				chg_amt_1,  chg_amt_2,  chg_amt_3,  chg_amt_4,  chg_amt_5,
+				chg_amt_6,  chg_amt_7,  chg_amt_8,  chg_amt_9,  chg_amt_10, chg_amt_11,
+				loan_key,
+				'ETL-Delete ' as audit_created_by,
+				audit_created_datetime,
+				audit_updated_by,
+				sor_cd,
+				'N' as active_flag
+				from {{this}} b
+				where active_flag = 'Y'
+				and not EXISTS(select 1 from CTE_UPSERT c where
+				b.loan_key = c.loan_key and  b.rec_type = c.rec_type
+				and b.chg_sq = c.chg_sq and b.sor_cd = c.sor_cd)
+            UNION
+			{%endif%}
+			
+				select
+				unq_key_txt, brnd_nm, rec_type, loan_nbr, chg_sq,
+				chg_type_flg_1,  chg_type_flg_2,  chg_type_flg_3,
+				chg_type_flg_4,  chg_type_flg_5,  chg_type_flg_6,
+				chg_type_flg_7,  chg_type_flg_8,  chg_type_flg_9,
+				chg_type_flg_10, chg_type_flg_11,
+				chg_dt_1,  chg_dt_2,  chg_dt_3,  chg_dt_4,  chg_dt_5,
+				chg_dt_6,  chg_dt_7,  chg_dt_8,  chg_dt_9,  chg_dt_10, chg_dt_11,
+				chg_amt_1,  chg_amt_2,  chg_amt_3,  chg_amt_4,  chg_amt_5,
+				chg_amt_6,  chg_amt_7,  chg_amt_8,  chg_amt_9,  chg_amt_10, chg_amt_11,
+				loan_key,
+				audit_created_by,
+				audit_created_datetime,
+				audit_updated_by,
+				sor_cd,
+				active_flag
+				from CTE_UPSERT
 
-select
-    unq_key_txt, brnd_nm, rec_type, loan_nbr, chg_sq,
-    chg_type_flg_1,  chg_type_flg_2,  chg_type_flg_3,
-    chg_type_flg_4,  chg_type_flg_5,  chg_type_flg_6,
-    chg_type_flg_7,  chg_type_flg_8,  chg_type_flg_9,
-    chg_type_flg_10, chg_type_flg_11,
-    chg_dt_1,  chg_dt_2,  chg_dt_3,  chg_dt_4,  chg_dt_5,
-    chg_dt_6,  chg_dt_7,  chg_dt_8,  chg_dt_9,  chg_dt_10, chg_dt_11,
-    chg_amt_1,  chg_amt_2,  chg_amt_3,  chg_amt_4,  chg_amt_5,
-    chg_amt_6,  chg_amt_7,  chg_amt_8,  chg_amt_9,  chg_amt_10, chg_amt_11,
-    loan_key,
-    audit_created_by,
-    audit_created_datetime,
-    audit_updated_by,
-    sor_cd,
-    active_flag
-from CTE_UPSERT
+)
+select * from final
 
 {% endsnapshot %}
