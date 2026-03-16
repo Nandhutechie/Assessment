@@ -141,7 +141,7 @@ CTE_UPSERT as (
 ),
 final as 
 (      
-		{% if var('trunc_flag', 'N') == 'Y' %}
+		{% if trunc_flag == 'Y' %}
 				select
 				unq_key_txt, brnd_nm, rec_type, loan_nbr, chg_sq,
 				chg_type_flg_1,  chg_type_flg_2,  chg_type_flg_3,
